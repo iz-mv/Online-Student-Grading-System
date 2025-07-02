@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Мои задания{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>Мои задания</h1>
+        <a href="{{ url_for('main.create_assignment') }}" class="btn btn-primary">➕ Создать задание</a>
+    </div>
+
+    <button onclick="toggleAssignments()" class="btn mt-2">🔽 Свернуть / Развернуть</button>
+
+    <div id="assignmentsSection" class="assignments-grid mt-2">
+        {% for assignment in assignments %}
+        <div class="assignment-card">
+            <div class="card-header">
+                <h3>{{ assignment.title }}</h3>
+                <span class="score-label">макс: {{ assignment.max_score }} баллов</span>
+            </div>
+            <p class="assignment-description">{{ assignment.description }}</p>
+            <div class="assignment-meta">
+                <span class="deadline">📅 {{ assignment.deadline.strftime('%d.%m.%Y %H:%M') if assignment.deadline else 'Без срока' }}</span>
+                <span class="created-at">🕒 {{ assignment.created_at.strftime('%d.%m.%Y') }}</span>
+            </div>
+            <div class="assignment-actions">
+                <a href="{{ url_for('main.view_submissions', assignment_id=assignment.id) }}" class="btn btn-small">Работы</a>
+                <a href="{{ url_for('main.edit_assignment', assignment_id=assignment.id) }}" class="btn btn-small btn-primary">Редактировать</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function toggleAssignments() {
+    const section = document.getElementById('assignmentsSection');
+    section.style.display = section.style.display === 'none' ? 'grid' : 'none';
+}
+</script>
+{% endblock %}

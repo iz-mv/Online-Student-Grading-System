@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль пользователя{% endblock %}
+
+{% block content %}
+<div class="profile-card">
+    <h1>Профиль пользователя</h1>
+    <form method="POST" class="profile-form">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="name">Имя:</label>
+                <input type="text" id="name" name="name"
+                       value="{{ user.name or '' }}" class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="last_name">Фамилия:</label>
+                <input type="text" id="last_name" name="last_name"
+                       value="{{ user.last_name or '' }}" class="form-input">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="age">Возраст:</label>
+                <input type="number" id="age" name="age"
+                       value="{{ user.age or '' }}" min="1" max="120" class="form-input">
+            </div>
+            <div class="form-group">
+                <label for="gender">Пол:</label>
+                <select id="gender" name="gender" class="form-input">
+                    <option value="">Не указан</option>
+                    <option value="Мужской" {% if user.gender == 'Мужской' %}selected{% endif %}>Мужской</option>
+                    <option value="Женский" {% if user.gender == 'Женский' %}selected{% endif %}>Женский</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email"
+                   value="{{ user.email }}" required class="form-input">
+        </div>
+        <div class="form-group">
+            <label for="password">Новый пароль (оставьте пустым, чтобы не менять):</label>
+            <input type="password" id="password" name="password" class="form-input">
+            <small class="form-hint">Минимум 6 символов</small>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Назад</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

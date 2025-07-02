@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Моя статистика{% endblock %}
+{% block content %}
+<div class="form-container">
+    <h1>Моя статистика</h1>
+
+    <div class="students-table-container">
+        <table class="students-table">
+            <thead>
+                <tr>
+                    <th>ФИО</th>
+                    <th>Средний балл</th>
+                    <th>Всего заданий</th>
+                    <th>Сдано</th>
+                    <th>Не сдано</th>
+                    <th>Сдано с 1-й попытки</th>
+                    <th>Просрочено</th>
+                    <th>Последний балл</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ session.get('username') }}</td>
+                    <td>{{ avg_score }}</td>
+                    <td>{{ total_assignments }}</td>
+                    <td>{{ completed }}</td>
+                    <td>{{ not_completed }}</td>
+                    <td>{{ first_try }}</td>
+                    <td>{{ late }}</td>
+                    <td>{{ last_score }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Диаграммы (пример) -->
+    <div style="display: flex; flex-wrap: wrap; gap: 40px; margin-top: 30px;">
+        <div style="flex: 1 1 350px; min-width: 320px;">
+            <h2 class="section-title">Баллы по заданиям</h2>
+            <canvas id="scoreChart"></canvas>
+        </div>
+        <div style="flex: 1 1 400px; min-width: 320px;">
+            <h2 class="section-title">Активность (тепловая карта)</h2>
+            <div id="heatmap" style="min-height: 180px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Диаграмма баллов по заданиям
+const scoreChart = new Chart(document.getElementById('scoreChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ assignment_titles|tojson }},
+        datasets: [{
+            label: 'Баллы',
+            data: {{ assignment_scores|tojson }},
+            backgroundColor: 'rgba(33,150,243,0.6)',
+        }]
+    },
+    options: {
+        scales: {
+            y: { beginAtZero: true, max: 100 }
+        }
+    }
+});
+
+// Тепловая карта активности
+const heatmapData = {{ heatmap_data|tojson }};
+const container = document.getElementById('heatmap');
+if (heatmapData.length) {
+    heatmapData.forEach(day => {
+        const d = document.createElement('div');
+        d.title = day.date + ': ' + day.count;
+        d.style.display = 'inline-block';
+        d.style.width = '18px';
+        d.style.height = '18px';
+        d.style.margin = '2px';
+        d.style.background = `rgba(255, 87, 34, ${0.12 + 0.65 * Math.min(day.count, 10)/10})`;
+        d.style.borderRadius = '3px';
+        d.innerHTML = '&nbsp;';
+        container.appendChild(d);
+    });
+} else {
+    container.innerText = "Нет активности";
+}
+</script>
+{% endblock %}

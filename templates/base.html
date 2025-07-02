@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <header class="header">
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="{{ url_for('main.dashboard') }}" class="logo">Dashboard</a>
+            {% if session.get('user_id') %}
+                {% if session.get('role') == 'teacher' %}
+                    <a href="{{ url_for('main.create_assignment') }}" class="nav-btn">Задания</a>
+                    <a href="{{ url_for('main.students') }}" class="nav-btn">Студенты</a>
+                {% else %}
+                    <a href="{{ url_for('main.assignments_list') }}" class="nav-btn">Задания</a>
+                {% endif %}
+                <a href="{{ url_for('main.statistics') }}" class="nav-btn">Статистика</a>
+            {% endif %}
+        </div>
+        <div class="nav-right">
+            {% if session.get('user_id') %}
+            <div class="profile-dropdown">
+                <button class="nav-btn profile-btn">{{ session.get('username') }}</button>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('main.profile') }}" class="dropdown-item">Профиль</a>
+                    <a href="{{ url_for('auth.logout') }}" class="dropdown-item">Выход</a>
+                </div>
+            </div>
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="nav-btn">Вход</a>
+            {% endif %}
+        </div>
+    </nav>
+</header>
+
+    <main>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flashes">
+                    {% for message in messages %}
+                        <div class="flash">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        // Скрипт для выпадающего меню профиля
+        document.querySelector('.profile-btn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelector('.dropdown-content').classList.toggle('show');
+        });
+
+        // Закрытие меню при клике вне его
+        window.onclick = function(e) {
+            if (!e.target.matches('.profile-btn')) {
+                const dropdowns = document.querySelectorAll('.dropdown-content.show');
+                dropdowns.forEach(dropdown => dropdown.classList.remove('show'));
+            }
+        }
+    </script>
+</body>
+</html>

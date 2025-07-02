@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Статистика{% endblock %}
+{% block content %}
+
+<div class="form-container">
+    <h1>Статистика по студентам</h1>
+
+    <div class="students-table-container">
+        <table class="students-table">
+            <thead>
+                <tr>
+                    <th>ФИО</th>
+                    <th>Средний балл</th>
+                    <th>Всего заданий</th>
+                    <th>Сдано</th>
+                    <th>Не сдано</th>
+                    <th>Сдано с 1-й попытки</th>
+                    <th>Просрочено</th>
+                    <th>Последний балл</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in student_stats %}
+                <tr onclick="showStudentDetails('{{ stat.student.id }}')">
+                    <td>{{ stat.student.name }}</td>
+                    <td>{{ stat.avg_score }}</td>
+                    <td>{{ assignments|length }}</td>
+                    <td>{{ stat.completed }}</td>
+                    <td>{{ stat.not_completed }}</td>
+                    <td>{{ stat.first_try }}</td>
+                    <td>{{ stat.late }}</td>
+                    <td>{{ stat.last_score }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Диаграммы -->
+    <div style="display: flex; flex-wrap: wrap; gap: 40px; margin-top: 30px;">
+        <div style="flex: 1 1 350px; min-width: 320px;">
+            <h2 class="section-title">Средний балл по студентам</h2>
+            <canvas id="avgScoreChart"></canvas>
+        </div>
+        <div style="flex: 1 1 350px; min-width: 320px;">
+            <h2 class="section-title">Распределение последних баллов</h2>
+            <canvas id="scoreDistChart"></canvas>
+        </div>
+        <div style="flex: 1 1 400px; min-width: 320px;">
+            <h2 class="section-title">Активность (тепловая карта)</h2>
+            <div id="heatmap" style="min-height: 180px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Гистограмма средних баллов
+const avgScoreChart = new Chart(document.getElementById('avgScoreChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ student_names|tojson }},
+        datasets: [{
+            label: 'Средний балл',
+            data: {{ avg_scores|tojson }},
+            backgroundColor: 'rgba(76,175,80,0.6)',
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        scales: {
+            x: { beginAtZero: true, max: 100 }
+        }
+    }
+});
+
+// Распределение последних баллов
+const scoreDistChart = new Chart(document.getElementById('scoreDistChart'), {
+    type: 'bar',
+    data: {
+        labels: {{ student_names|tojson }},
+        datasets: [{
+            label: 'Последний балл',
+            data: {{ scores_distribution|tojson }},
+            backgroundColor: 'rgba(33,150,243,0.6)',
+        }]
+    },
+    options: {
+        scales: {
+            y: { beginAtZero: true, max: 100 }
+        }
+    }
+});
+
+// Тепловая карта
+const heatmapData = {{ heatmap_data|tojson }};
+const container = document.getElementById('heatmap');
+if (heatmapData.length) {
+    heatmapData.forEach(day => {
+        const d = document.createElement('div');
+        d.title = day.date + ': ' + day.count;
+        d.style.display = 'inline-block';
+        d.style.width = '18px';
+        d.style.height = '18px';
+        d.style.margin = '2px';
+        d.style.background = `rgba(255, 87, 34, ${0.12 + 0.65 * Math.min(day.count, 10)/10})`;
+        d.style.borderRadius = '3px';
+        d.innerHTML = '&nbsp;';
+        container.appendChild(d);
+    });
+} else {
+    container.innerText = "Нет активности";
+}
+</script>
+{% endblock %}

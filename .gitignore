@@ -1,0 +1,27 @@
+# Python bytecode
+__pycache__/
+*.pyc
+
+# PyCharm/IDEA config
+.idea/
+
+# Flask session files
+flask_session/
+
+# Instance folder
+instance/*
+
+# Результаты тестов, временные файлы
+*.log
+*.tmp
+*.test.*
+.test_*.py
+
+# Pytest cache
+.pytest_cache/
+
+# media
+media/
+
+# venv
+venv/

@@ -1,0 +1,26 @@
+{% extends "teacher_dashboard.html" %}
+
+{% block content %}
+<div class="submissions-list">
+    <h2>Работы по заданию: {{ assignment.title }}</h2>
+
+    {% for submission in submissions %}
+    <div class="submission">
+        <p>Студент: {{ submission.student.name }}</p>
+        <p>Решение: {{ submission.answers_texts|join(', ') }}</p>
+
+
+        <form method="POST" action="{{ url_for('main.grade_submission', submission_id=submission.id) }}">
+            <label>Оценка (0-{{ assignment.max_score }}):</label>
+            <input type="number" name="score" min="0" max="{{ assignment.max_score }}"
+                   value="{{ submission.score if submission.score }}">
+
+            <label>Комментарий:</label>
+            <textarea name="feedback">{{ submission.feedback if submission.feedback }}</textarea>
+
+            <button type="submit">Сохранить</button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+Flask
+Flask-SQLAlchemy
+Flask-Session
+Flask-WTF
+WTForms
+email-validator
+SQLAlchemy
+Werkzeug
+pytest
+Flask-Login

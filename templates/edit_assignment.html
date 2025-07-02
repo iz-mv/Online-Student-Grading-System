@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Редактирование задания{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Редактирование задания</h1>
+
+    <form method="POST" class="assignment-form">
+        <div class="form-group">
+            <label for="title">Название задания:</label>
+            <input type="text" id="title" name="title" value="{{ assignment.title }}" required class="form-input">
+        </div>
+
+        <div class="form-group">
+            <label for="description">Описание:</label>
+            <textarea id="description" name="description" required class="form-textarea">{{ assignment.description }}</textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="deadline">Срок сдачи:</label>
+                <input type="datetime-local" id="deadline" name="deadline"
+                       value="{{ assignment.deadline.strftime('%Y-%m-%dT%H:%M') if assignment.deadline else '' }}"
+                       class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label for="max_score">Максимальный балл:</label>
+                <input type="number" id="max_score" name="max_score" min="1"
+                       value="{{ assignment.max_score }}" required class="form-input">
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Отмена</a>
+            <form method="POST" action="{{ url_for('main.delete_assignment', assignment_id=assignment.id) }}" style="display: inline;">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Вы уверены, что хотите удалить это задание?')">Удалить задание</button>
+            </form>
+        </div>
+    </form>
+</div>
+{% endblock %}

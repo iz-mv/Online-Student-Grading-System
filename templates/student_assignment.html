@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Мои задания{% endblock %}
+
+{% block content %}
+<div class="student-dashboard">
+    <div class="dashboard-container">
+        <h1 class="welcome-title">Мои задания</h1>
+
+        <div class="assignments-section">
+            <div class="assignments-grid">
+                {% for assignment in assignments %}
+                <div class="assignment-card">
+                    <div class="assignment-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3>{{ assignment.title }}</h3>
+                        {% set my_submission = assignment.submissions[0] if assignment.submissions else None %}
+                        {% if my_submission and my_submission.score is not none %}
+                            <span class="score-label" style="color:#339933; font-weight:bold;">
+                                {{ my_submission.score }}/{{ assignment.max_score }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    <span class="due-date">
+                        {% if assignment.deadline %}
+                            Срок сдачи: {{ assignment.deadline.strftime('%d.%m.%Y') }}
+                        {% else %}
+                            Без срока
+                        {% endif %}
+                    </span>
+                    <p class="assignment-description">{{ assignment.description }}</p>
+                    <div class="assignment-status">
+                        {% if my_submission %}
+                            {% if my_submission.score is not none %}
+                                <div class="score submitted">
+                                    <span style="color:#339933;">Сдано</span>
+                                </div>
+                                <a href="{{ url_for('main.submit_assignment', assignment_id=assignment.id) }}"
+                                   class="btn btn-small">Изменить решение</a>
+                            {% else %}
+                                <div class="score waiting">
+                                    <span style="color:#d98e1f;">Сдано, ожидает проверки</span>
+                                </div>
+                                <a href="{{ url_for('main.submit_assignment', assignment_id=assignment.id) }}"
+                                   class="btn btn-small">Изменить решение</a>
+                            {% endif %}
+                        {% else %}
+                            <div class="score not-submitted">
+                                <span style="color:#c23c2a;">Не сдано</span>
+                            </div>
+                            <a href="{{ url_for('main.submit_assignment', assignment_id=assignment.id) }}"
+                               class="btn btn-small btn-primary">Сдать работу</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="no-assignments">
+                    <p>На данный момент у вас нет активных заданий</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

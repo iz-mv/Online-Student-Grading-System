@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Сдать задание{% endblock %}
+
+{% block content %}
+<div class="submit-assignment-container">
+    <h1 class="submit-title">Сдать задание: {{ assignment.title }}</h1>
+    <p class="assignment-description">{{ assignment.description }}</p>
+    {% if assignment.deadline %}
+        <p class="assignment-deadline">
+            Срок сдачи: {{ assignment.deadline.strftime('%d.%m.%Y %H:%M') }}
+        </p>
+    {% endif %}
+
+    <form method="POST">
+        {% for question in assignment.questions %}
+            <div class="question-block">
+                <p><strong>{{ loop.index }}. {{ question.text }}</strong></p>
+                {% for option in question.options %}
+                    <label>
+                        <input type="radio"
+                               name="question_{{ question.id }}"
+                               value="{{ option.id }}"
+                               required>
+                        {{ option.text }}
+                    </label><br>
+                {% endfor %}
+            </div>
+            <hr>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary mt-2">Отправить</button>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary mt-2">Назад</a>
+    </form>
+</div>
+{% endblock %}

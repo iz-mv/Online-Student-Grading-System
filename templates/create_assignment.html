@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Создание задания{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h1>Создать новое задание</h1>
+
+    <form method="POST" class="assignment-form" id="assignmentForm">
+        <div class="form-group">
+            <label>Название задания:</label>
+            <input type="text" name="title" required class="form-input">
+        </div>
+
+        <div class="form-group">
+            <label>Описание:</label>
+            <textarea name="description" required class="form-textarea"></textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>Срок сдачи:</label>
+                <input type="datetime-local" name="deadline" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label>Максимальный балл:</label>
+                <input type="number" name="max_score" min="1" value="10" required class="form-input">
+            </div>
+        </div>
+
+        <hr>
+
+        <div id="questions-container">
+            <!-- Вопросы будут добавляться тут -->
+        </div>
+
+        <button type="button" class="btn" onclick="addQuestion()">Добавить вопрос</button>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Создать задание</button>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+
+<script>
+function addQuestion() {
+    const container = document.getElementById('questions-container');
+    const questionCount = container.children.length + 1;
+
+    const questionDiv = document.createElement('div');
+    questionDiv.className = 'question-group';
+    questionDiv.innerHTML = `
+        <label>Вопрос ${questionCount}:</label>
+        <textarea name="question_text[]" required class="form-textarea"></textarea>
+
+        <div class="options-container" id="options_${questionCount}">
+            <label>Варианты ответов:</label>
+            <button type="button" onclick="addOption(${questionCount})">Добавить вариант</button>
+        </div>
+        <hr>
+    `;
+    container.appendChild(questionDiv);
+}
+
+function addOption(questionId) {
+    const optionsContainer = document.getElementById(`options_${questionId}`);
+    const optionCount = optionsContainer.querySelectorAll('input[type="text"]').length;
+
+    const optionDiv = document.createElement('div');
+    optionDiv.innerHTML = `
+        <input type="radio" name="correct_option_${questionId}" value="${optionCount}" required>
+        <input type="text" name="answer_option_${questionId}[]" required class="form-input" placeholder="Вариант ответа">
+    `;
+    optionsContainer.appendChild(optionDiv);
+}
+</script>
+{% endblock %}
+>

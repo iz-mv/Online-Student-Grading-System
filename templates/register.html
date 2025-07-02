@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <div class="auth-form">
+        <h2>Регистрация</h2>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flashes">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="name">Имя</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Роль</label>
+                <select id="role" name="role" required>
+                    <option value="student">Ученик</option>
+                    <option value="teacher">Учитель</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="group-field" style="display: block;">
+                <label for="group">Группа</label>
+                <input type="text" id="group" name="group" placeholder="Например: 11-314a">
+            </div>
+
+            <button type="submit" class="btn-block">Зарегистрироваться</button>
+        </form>
+
+        <div class="auth-switch">
+            Уже есть аккаунт?
+            <a href="{{ url_for('auth.login') }}">Войдите</a>
+        </div>
+    </div>
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const roleSelect = document.getElementById('role');
+        const groupField = document.getElementById('group-field');
+
+        function toggleGroupField() {
+            if (roleSelect.value === 'student') {
+                groupField.style.display = 'block';
+            } else {
+                groupField.style.display = 'none';
+            }
+        }
+
+        roleSelect.addEventListener('change', toggleGroupField);
+        toggleGroupField();
+    });
+    </script>
+</body>
+</html>

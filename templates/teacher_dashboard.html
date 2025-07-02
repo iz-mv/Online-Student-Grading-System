@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Панель преподавателя{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <h1 style="text-align:center; margin-bottom: 32px;">
+        Добро пожаловать, {{ session.get('username') }}!
+    </h1>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flashes">
+                {% for message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Мои студенты -->
+    <div class="students-section mt-3">
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleStudentsBlock()">
+            <div>
+                <h2 style="display: inline-block;">Мои студенты</h2>
+                <span id="studentsArrow" style="font-size: 1.2rem; margin-left: 10px;">⬇️</span>
+            </div>
+            <button class="btn btn-primary" onclick="event.stopPropagation(); toggleAddForm();">➕ Добавить</button>
+        </div>
+        <div id="studentsBlock" style="display: block;">
+            <form method="get" class="filter-section" style="display: flex; gap: 15px; align-items: flex-end; margin: 18px 0 15px 0;">
+                <div>
+                    <label for="group">Группа:</label>
+                    <select name="group" id="group" class="form-input" onchange="this.form.submit()">
+                        <option value="">Все группы</option>
+                        {% for group in all_groups %}
+                            <option value="{{ group }}" {% if group_filter==group %}selected{% endif %}>{{ group }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="score">Средний балл:</label>
+                    <select name="score" id="score" class="form-input" onchange="this.form.submit()">
+                        <option value="">Все</option>
+                        <option value=">90" {% if score_filter=='>90' %}selected{% endif %}>&gt; 90</option>
+                        <option value=">75" {% if score_filter=='>75' %}selected{% endif %}>&gt; 75</option>
+                        <option value=">60" {% if score_filter=='>60' %}selected{% endif %}>&gt; 60</option>
+                        <option value="<50" {% if score_filter=='<50' %}selected{% endif %}>&lt; 50</option>
+                        <option value="=100" {% if score_filter=='=100' %}selected{% endif %}>= 100</option>
+                    </select>
+                </div>
+                {% if group_filter or score_filter %}
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-small" style="margin-bottom: 2px;">Сбросить</a>
+                {% endif %}
+            </form>
+            <div id="addForm" class="add-student-section" style="display: none;">
+                <form method="POST" action="{{ url_for('main.add_student') }}" class="student-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Имя:</label>
+                            <input type="text" name="name" required class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Email:</label>
+                            <input type="email" name="email" required class="form-input">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-1">Добавить</button>
+                </form>
+            </div>
+            <div class="students-table-container mt-2">
+                <table class="students-table" id="studentsTable">
+                    <thead>
+                        <tr>
+                            <th>Имя</th>
+                            <th>Email</th>
+                            <th>Группа</th>
+                            <th>Средний балл</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>{{ student.name }}</td>
+                            <td>{{ student.email }}</td>
+                            <td>{{ student.group if student.group else '—' }}</td>
+                            <td>
+                                {% if avg_scores[student.id] is not none %}
+                                    {{ avg_scores[student.id] }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ url_for('main.delete_student', student_id=student.id) }}" onsubmit="return confirm('Удалить этого студента?');">
+                                    <button type="submit" class="btn btn-danger btn-small">Удалить</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if not students %}
+                <div class="no-students">
+                    Нет студентов по выбранным фильтрам.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Задания преподавателя -->
+    <div class="assignments-section mt-3">
+        <div class="section-header" onclick="toggleDashboardAssignments()" style="cursor: pointer;">
+            <h2 style="display: inline-block;">Мои задания</h2>
+            <span id="arrow" style="font-size: 1.2rem; margin-left: 10px;">⬇️</span>
+            <a href="{{ url_for('main.create_assignment') }}" class="btn btn-small btn-primary" style="float:right;">➕ Новое задание</a>
+        </div>
+        <div id="dashboardAssignments" class="assignments-list mt-2" style="display: block;">
+            <div class="assignments-grid">
+                {% for assignment in assignments %}
+                <div class="assignment-card">
+                    <div class="card-header">
+                        <h3>{{ assignment.title }}</h3>
+                        <span class="score-label">макс: {{ assignment.max_score }} баллов</span>
+                    </div>
+                    <p class="assignment-description">{{ assignment.description }}</p>
+                    <div class="assignment-meta">
+                        <span class="deadline">📅 {{ assignment.deadline.strftime('%d.%m.%Y %H:%M') if assignment.deadline else 'Без срока' }}</span>
+                        <span class="created-at">🕒 {{ assignment.created_at.strftime('%d.%m.%Y') }}</span>
+                    </div>
+                    <div class="assignment-actions">
+                        <a href="{{ url_for('main.view_submissions', assignment_id=assignment.id) }}" class="btn btn-small">Работы</a>
+                        <a href="{{ url_for('main.edit_assignment', assignment_id=assignment.id) }}" class="btn btn-small btn-primary">Редактировать</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% if not assignments %}
+            <div class="no-students" style="margin-top: 20px;">
+                Пока нет заданий.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Сворачивание заданий
+    function toggleDashboardAssignments() {
+        const section = document.getElementById('dashboardAssignments');
+        const arrow = document.getElementById('arrow');
+        if (!section.style.display || section.style.display === 'block') {
+            section.style.display = 'none';
+            arrow.textContent = '⬆️';
+        } else {
+            section.style.display = 'block';
+            arrow.textContent = '⬇️';
+        }
+    }
+
+    // Сворачивание студентов
+    function toggleStudentsBlock() {
+        const block = document.getElementById('studentsBlock');
+        const arrow = document.getElementById('studentsArrow');
+        if (block.style.display === 'none') {
+            block.style.display = 'block';
+            arrow.textContent = '⬇️';
+        } else {
+            block.style.display = 'none';
+            arrow.textContent = '⬆️';
+        }
+    }
+
+    // Добавление студента
+    function toggleAddForm() {
+        const form = document.getElementById('addForm');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+</script>
+{% endblock %}

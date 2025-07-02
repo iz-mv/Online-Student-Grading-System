@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Панель студента{% endblock %}
+
+{% block content %}
+<div class="student-dashboard">
+    <div class="dashboard-container">
+        <h1 class="welcome-title" style="font-size:2.1rem; font-weight:600; color:#111; text-align:center; margin-bottom:2.2rem;">
+            Добро пожаловать, {{ current_user.name }} {{ current_user.last_name }}!
+        </h1>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flashes">
+                    {% for message in messages %}
+                        <div class="flash">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Progress Block -->
+        <div class="student-progress-block" style="display:flex; justify-content:center; gap:2.5rem; background:#f6f8fb; border-radius:18px; box-shadow:0 2px 10px #e3e6ee; padding:24px 0 18px 0; margin-bottom:36px;">
+            <div style="text-align:center;">
+                <span style="color:#aaa;font-size:0.97rem;">Всего заданий</span>
+                <div style="font-size:2rem;font-weight:700; letter-spacing:1px;">{{ assignments|length }}</div>
+            </div>
+            <div style="text-align:center;">
+                <span style="color:#aaa;font-size:0.97rem;">Сдано</span>
+                <div style="font-size:2rem;font-weight:700; letter-spacing:1px;">
+                    {% set submitted = 0 %}
+                    {% for assignment in assignments %}
+                        {% set my_submission = assignment.submissions | first %}
+                        {% if my_submission and my_submission.score is not none %}
+                            {% set submitted = submitted + 1 %}
+                        {% endif %}
+                    {% endfor %}
+                    {{ submitted }}
+                </div>
+            </div>
+            <div style="text-align:center;">
+                <span style="color:#aaa;font-size:0.97rem;">Средний балл</span>
+                <div style="font-size:2rem;font-weight:700; letter-spacing:1px;">
+                    {% set all_scores = [] %}
+                    {% for sub in submissions %}
+                        {% if sub.score is not none %}
+                            {% set _ = all_scores.append(sub.score) %}
+                        {% endif %}
+                    {% endfor %}
+                    {% if all_scores %}
+                        {{ (all_scores | sum) // (all_scores | length) }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="assignments-section">
+            <h2 class="section-title" style="font-size:1.4rem; font-weight:600; margin-bottom:1.2rem; letter-spacing:0.5px;">
+                Мои задания
+            </h2>
+            <div class="assignments-grid" style="gap:32px;">
+                {% for assignment in assignments %}
+                {% set my_submission = assignment.submissions | selectattr('student_id', 'equalto', current_user.id) | first %}
+                <div class="assignment-card" style="box-shadow:0 4px 24px 0 #eaeef6;">
+                    <div class="assignment-header" style="display:flex;justify-content:space-between;align-items:center; margin-bottom:10px;">
+                        <h3 style="font-size:1.17rem; font-weight:600; color:#2d3136; margin:0;">{{ assignment.title }}</h3>
+                        {% if my_submission and my_submission.score is not none %}
+                            <span class="score-label" style="color:#fff;background:#15c351;font-size:1.05rem;padding:5px 16px 5px 16px; border-radius:1rem; box-shadow:0 1px 5px #c5e8d0;">
+                                {{ my_submission.score }}<span style="color:#eafbe7;">/</span>{{ assignment.max_score }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    <span class="due-date" style="color:#999;font-size:0.95rem;">
+                        {% if assignment.deadline %}
+                            Срок сдачи: {{ assignment.deadline.strftime('%d.%m.%Y') }}
+                        {% else %}
+                            Без срока
+                        {% endif %}
+                    </span>
+                    <p class="assignment-description" style="margin:1rem 0 0.8rem 0; color:#444; font-size:1.02rem;">{{ assignment.description }}</p>
+                    <div class="assignment-status" style="margin-top:1.3rem;">
+                        {% if my_submission %}
+                            {% if my_submission.score is not none %}
+                                <div class="score submitted" style="color:#1eaf35;font-size:1.01rem; display:inline-block;">
+                                    <i style="font-size:1.05rem; margin-right:2px;" class="fa fa-check-circle"></i> Сдано
+                                </div>
+                                <a href="{{ url_for('main.submit_assignment', assignment_id=assignment.id) }}"
+                                   class="btn btn-small" style="margin-left:1.2rem;">Изменить решение</a>
+                            {% else %}
+                                <div class="score waiting" style="color:#ef990b; font-size:1.01rem; display:inline-block;">
+                                    <i style="font-size:1.05rem; margin-right:2px;" class="fa fa-hourglass-half"></i> Сдано, ожидает проверки
+                                </div>
+                                <a href="{{ url_for('main.submit_assignment', assignment_id=assignment.id) }}"
+                                   class="btn btn-small" style="margin-left:1.2rem;">Изменить решение</a>
+                            {% endif %}
+                        {% else %}
+                            <div class="score not-submitted" style="color:#e2511e; font-size:1.01rem; display:inline-block;">
+                                <i style="font-size:1.07rem; margin-right:2px;" class="fa fa-times-circle"></i> Не сдано
+                            </div>
+                            <a href="{{ url_for('main.submit_assignment', assignment_id=assignment.id) }}"
+                               class="btn btn-small btn-primary" style="margin-left:1.2rem;">Сдать работу</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="no-assignments" style="background:#f4f8fa;border-radius:12px;padding:38px;text-align:center;font-size:1.15rem;">
+                    <p>На данный момент у вас нет активных заданий</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% endblock %}
